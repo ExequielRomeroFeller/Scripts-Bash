@@ -1,14 +1,16 @@
 #!/bin/bash
 
+#Una linea que no molesta
+
 function ejecutar () {
  echo hola $1
 }
 
 ##Condicional for
 
-#for VARIABLE in ${@}; do
-# ejecutar $VARIABLE
-#done
+for VARIABLE in ${@}; do
+ ejecutar $VARIABLE
+done
 
 ##Condicional while
 
@@ -48,3 +50,5 @@ while getopts "a:b:" FLAG; do
    echo "Opción invalida"
  esac
 done
+
+#otra linea que modifico
