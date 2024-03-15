@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #Definición de variables
-USER="TU_USUARIO"
-PASS="TU_CONTRASEÑA"
+USER="root"
+PASS="optiquest"
 BASE=""
 BACKUP="/mnt/clients/infraVieja"
 FECHA=$(date +%Y:%m:%d)
@@ -33,7 +33,7 @@ function backupBase {
         comprobarBase "$NUEVABASE"
         if [ $BANDERA == "0" ]; then
                 mysqladmin -u $USER -p$PASS create $NUEVABASE
-                mysqldump -u $USER -v $BASE -p$PASS | mysql -u $USER -p$PASS -D $NUEVABASE
+                mysqldump -u $USER -v $BASE --set-gtid-purged=OFF -p$PASS | mysql -u $USER -p$PASS -D $NUEVABASE
                 echo "El BACKUP de la base $NUEVABASE se realizó correctamente."
         fi
 }
@@ -41,22 +41,21 @@ function backupBase {
 function restaurarBase {
         #Restaura una base de datos con el backup de preproducción de la vieja infraestructura.
         mysql -u $USER -p$PASS -Nse 'SHOW TABLES' $BASE | while read table; do mysql -u $USER -p$PASS -e "SET FOREIGN_KEY_CHECKS=0; TRUNCATE TABLE $table" $BASE; done
-        mysql -u $USER -p$PASS $BASE < $BACKUP/haciaNueva/$BASE.sql
-        mysql -u $USER -p$PASS -e "SET FOREIGN_KEY_CHECKS=1";
+        mysql -u $USER -p$PASS -f -e "SET FOREIGN_KEY_CHECKS=0; use $BASE; source $BACKUP/haciaNueva/$BASE.sql; SET FOREIGN_KEY_CHECKS=1;"
 }
 
 function verBase {
         #Muestra en pantalla las tablas que se encuentran en el mysql local
-        mysql -u $USER -p$PASS -e "show databases"
+        mysql -u $USER -p$PASS -e "SHOW DATABASES"
 }
 
 function recuperarBackupLocal {
         #Restaura una base de datos en con los backup creados localmente con el SCRIPT
         BASECORTADA=$(echo $BASE | cut -d'-' -f1)
-        mysqldump -u $USER -p$PASS --no-create-info --set-gtid-purged=off --no-create-info $BASE > /SCRIPT/Pivote.sql
-        mysql -u $USER -p$PASS -Nse 'SHOW TABLES' $BASECORTADA | while read table; do mysql -u $USER -p$PASS -e "SET FOREIGN_KEY_CHECKS=0; TRUNCATE TABLE $table" $BASECORTADA; done
-        mysql -u $USER -p$PASS $BASECORTADA < /SCRIPT/Pivote.sql
-        mysql -u $USER -p$PASS -e "SET FOREIGN_KEY_CHECKS=1;"
+        mysqldump -u $USER -p$PASS --single-transaction --add-drop-table --set-gtid-purged=OFF -q $BASE > /SCRIPT/Pivote.sql
+        mysqladmin -u $USER -p$PASS drop $BASECORTADA
+        mysqladmin -u $USER -p$PASS create $BASECORTADA
+        mysql -u $USER -p$PASS -f -e "SET FOREIGN_KEY_CHECKS=0; use $BASECORTADA; source /SCRIPT/Pivote.sql; SET FOREIGN_KEY_CHECKS=1;"
         rm /SCRIPT/Pivote.sql
 }
 
@@ -76,7 +75,7 @@ while getopts "a:,b:,s,r:" FLAG; do
                         echo "No se realizó la restauración, la base ingresada no existe o canceló la operación."
                 fi
                 ;;
-                 b)
+                b)
                 BANDERA="0"
                 BASE=${OPTARG}
                 echo "Se creará un backup local de la base $BASE"
@@ -116,5 +115,7 @@ while getopts "a:,b:,s,r:" FLAG; do
                 echo "El formato del comando para ver las bases actuales cargadas en mysql-server es: viejaAvieja -s."
         esac
 done
+
+
 
 
