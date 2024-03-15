@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #Definición de variables
-USER="consulta"
-PASS="consulta"
+USER="TU_USUARIO"
+PASS="TU_CONTRASEÑA"
 BASE=""
 BACKUP="/mnt/clients/infraVieja"
 LOGFILE="/mnt/clients/infraVieja/LOG_DUMP.log"
