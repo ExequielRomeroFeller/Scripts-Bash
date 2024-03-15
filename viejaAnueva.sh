@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #Definición de variables
-USER="root"
-PASS="optiquest"
+USER="TU_USUARIO"
+PASS="TU_CONTRASEÑA"
 BASE=""
 BACKUP="/mnt/clients/infraVieja"
 FECHA=$(date +%Y:%m:%d)
