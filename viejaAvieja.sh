@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #Definición de variables
-USER="TU_USUARIO"
-PASS="TU_CONTRASEÑA"
+USER="root"
+PASS="optiquest"
 BASE=""
 BACKUP="/mnt/clients/infraVieja"
 FECHA=$(date +%Y:%m:%d)
@@ -30,7 +30,7 @@ function comprobarBase {
 function backupBase {
     #Creamos un backup de la base que se encuentra en el mysql local con el mismo nombre y agregando fecha_actual-bkp 
     BANDERA="0"
-    NUEVABASE="$BASE-$FECHA-bkp"
+   
     comprobarBase "$NUEVABASE"
     if [ $BANDERA == "0" ]; then
         mysqladmin -u $USER -p$PASS create $NUEVABASE
