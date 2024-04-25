@@ -9,6 +9,8 @@ BACKUP="/mnt/clients/infraNueva"
 BANDERA="0"
 COMPROBARBASE=""
 CONSULTA=""
+USUARIOSADM=("LUCIANO" "GABI" "GUILLE" "MIRTA" "PIOJO")
+SERVER="localhost"
 
 #Definición de funciones
 function comprobarBase {
@@ -46,8 +48,15 @@ function verBase {
 
 function preguntarPass {
     echo "Ingrese la contraseña de desencriptado: "
-    read LLAVE
-    PASS=$(echo "$ENCRIPTADO" | openssl enc -aes-256-cbc -a -d -salt -pass pass:"$LLAVE")
+    read -s LLAVE
+    PASS=$(echo "$ENCRIPTADO" | openssl enc -pbkdf2 -a -d -salt -pass pass:"$LLAVE")
+}
+
+function limpiarVistas {
+    for dato in ${USUARIOSADM[@]}; do
+    sed -i "/DEFINER=\`$dato\`@\`$SERVER\`/d" $BACKUP/$BASE.sql
+    echo "/DEFINER=\`$dato\`@\`$SERVER\`/d"
+    done
 }
 
 while getopts "b:,e:,d:,s" FLAG; do
@@ -62,6 +71,7 @@ while getopts "b:,e:,d:,s" FLAG; do
             comprobarBase "$BASE"
             if [ $RESPUESTA == y -a $BANDERA == "1" ]; then
                 dumpBase
+                limpiarVistas
                 echo "Se realizó el Backup de $BASE."
             else
                 echo "No se realizó el Backup, la base ingresada no existe o se canecló la operación."
@@ -77,6 +87,7 @@ while getopts "b:,e:,d:,s" FLAG; do
             comprobarBase "$BASE"
             if [ $RESPUESTA == y -a $BANDERA == "1" ]; then
                 dumpEstructura
+                limpiarVistas
                 echo "Se realizó el Backup de la estructura de la $BASE."
             else
                 echo "No se realizó el Backup, la base ingresada no existe o se canecló la operación."
